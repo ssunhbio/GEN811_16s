@@ -1,7 +1,7 @@
 data/fastqs/*
 refdb/*
-.gz
-.fastq
-.csv
-.png
-.rpg
+*.gz
+*.fastq
+*.csv
+*.png
+*.rpg
