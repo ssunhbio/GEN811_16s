@@ -1,4 +1,9 @@
 This working document will detail how to manipulate DNA files in RON using Visual Studio Code
+Useful tutorials:
+    https://docs.qiime2.org/2024.10/tutorials/moving-pictures-usage/
+    https://github.com/Joseph7e/HCGS_Metabarcoding_Tutorials
+    https://astrobiomike.github.io/amplicon/
+
 SARA WRITE UP --- 
 1. One person should create a Main Repository in github; then invite any collaboraters.
 2. Everyone (including the creator of the main repository) should branch the Main Repository so they can work on their own codes and then do pull requests. 
