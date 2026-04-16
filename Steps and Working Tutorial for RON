@@ -1,0 +1,15 @@
+This working document will detail how to manipulate DNA files in RON using Visual Studio Code
+SARA WRITE UP --- 
+1. One person should create a Main Repository in github; then invite any collaboraters.
+2. Everyone (including the creator of the main repository) should branch the Main Repository so they can work on their own codes and then do pull requests. 
+3. Once you have created your branch, open Visual Studio Code. Login into RON using ron.sr.unh.edu (ssh username@ron.sr.unh.edu).
+4. Clone your branch in VScode 
+    git clone -b BranchName  --single-branch https://github.com/githubUSERNAME/Repository Name
+      EX. git clone -b SaraBranch  --single-branch https://github.com/ssunhbio/GEN811_16s
+5. Use FileZilla to transfer your raw data from the source company to your new RON branch.
+6. Activate a conda environment.
+    conda activate
+7. You can use conda list or conda info --envs to see the environments available to use.  We will use qiime2-amplicon-2024.5 for trimming our runs.
+    conda activate qiime2-amplicon-2024.5
+8. qiime2 has cutadapt in it, which we can activate the same way we activated conda and qiime2
+    conda activate cutadapt4.9
