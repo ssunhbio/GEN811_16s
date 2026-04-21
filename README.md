@@ -1,4 +1,19 @@
 README
 Change
 
-Natalie change
+
+
+My Project Name
+
+
+Authors
+
+
+Background
+
+
+Methods
+
+
+
+Findings
