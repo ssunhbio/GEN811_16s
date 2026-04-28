@@ -1,0 +1,38 @@
+Natalie's notes
+
+freshwater data: WIS, HILT, NBL, LAMP, MAIN
+
+Workflow
+Setp 1: make a branch called "NatalieBranch" from Sara's main branch 
+Step 2: transfer files to ron via filezilla into fastq folder within the data folder 
+Step 3: make a text file with a list of the sampleIDs for the sites I am interested in
+306_fresh.txt
+313_fresh.txt
+
+Step 4: use this code to cut fastq files out for sites I am not interested in 
+
+mk dir seq1_weekly_fresh
+while IFS= read -r prefix; do   cp -v "${prefix}_"* seq1_weekly_fresh/; done < 306_fresh.txt
+
+mkdir seq2_weekly_fresh
+while IFS= read -r prefix; do   cp -v "${prefix}_"* seq2_weekly_fresh/; done < 313_fresh.txt
+
+Step 5: cut adapt
+#move into first folder of data
+cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh
+
+#activate environment
+conda activate qiime2-amplicon-2026.1
+
+#test cutadapt for one sample (266):
+cutadapt     -a GTGCCAGCMGCCGCGGTAA     -A GGACTACHVGGGTWTCTAAT     -o trimmed.R1.fastq.gz     -p trimmed.R2.fastq.gz     91_R1.fastq.gz 266_R2.fastq.gz
+
+#it worked (i see trimmed files for that one sample) so now run for loop to trim everything
+for sample in *_R1.fastq.gz; do     base=$(basename "$sample" _R1.fastq.gz);     cutadapt         -a GTGCCAGCMGCCGCGGTAA         -A GGACTACHVGGGTWTCTAAT         -o "${base}_trimmed_R1.fastq.gz"         -p "${base}_trimmed_R2.fastq.gz"         "${base}_R1.fastq.gz"         "${base}_R2.fastq.gz"; done
+
+#change into seq2 folder
+cd /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh
+
+#do cutadapt for these files
+
+
