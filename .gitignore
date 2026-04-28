@@ -5,3 +5,5 @@ refdb/*
 *.csv
 *.png
 *.rpg
+*.html
+*.qza
