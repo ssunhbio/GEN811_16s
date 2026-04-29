@@ -25,7 +25,7 @@ cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fr
 conda activate qiime2-amplicon-2026.1
 
 #test cutadapt for one sample (266):
-cutadapt     -a GTGCCAGCMGCCGCGGTAA     -A GGACTACHVGGGTWTCTAAT     -o trimmed.R1.fastq.gz     -p trimmed.R2.fastq.gz     91_R1.fastq.gz 266_R2.fastq.gz
+cutadapt     -a GTGCCAGCMGCCGCGGTAA     -A GGACTACHVGGGTWTCTAAT     -o trimmed.R1.fastq.gz     -p trimmed.R2.fastq.gz     266_R1.fastq.gz 266_R2.fastq.gz
 
 #it worked (i see trimmed files for that one sample) so now run for loop to trim everything
 for sample in *_R1.fastq.gz; do     base=$(basename "$sample" _R1.fastq.gz);     cutadapt         -a GTGCCAGCMGCCGCGGTAA         -A GGACTACHVGGGTWTCTAAT         -o "${base}_trimmed_R1.fastq.gz"         -p "${base}_trimmed_R2.fastq.gz"         "${base}_R1.fastq.gz"         "${base}_R2.fastq.gz"; done
@@ -34,5 +34,9 @@ for sample in *_R1.fastq.gz; do     base=$(basename "$sample" _R1.fastq.gz);    
 cd /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh
 
 #do cutadapt for these files
+for sample in *_R1.fastq.gz; do     base=$(basename "$sample" _R1.fastq.gz);     cutadapt         -a GTGCCAGCMGCCGCGGTAA         -A GGACTACHVGGGTWTCTAAT         -o "${base}_trimmed_R1.fastq.gz"         -p "${base}_trimmed_R2.fastq.gz"         "${base}_R1.fastq.gz"         "${base}_R2.fastq.gz"; done
+
+
+
 
 
