@@ -9,7 +9,8 @@ Step 3: make a text file with a list of the sampleIDs for the sites I am interes
 306_fresh.txt
 313_fresh.txt
 
-Step 4: use this code to cut fastq files out for sites I am not interested in 
+Step 4: use this code to cut fastq files out for sites I am not interested in, and put the ones I want into new files
+called seq1_weekly_fresh and seq2_weekly_fresh 
 
 mk dir seq1_weekly_fresh
 while IFS= read -r prefix; do   cp -v "${prefix}_"* seq1_weekly_fresh/; done < 306_fresh.txt
@@ -17,7 +18,7 @@ while IFS= read -r prefix; do   cp -v "${prefix}_"* seq1_weekly_fresh/; done < 3
 mkdir seq2_weekly_fresh
 while IFS= read -r prefix; do   cp -v "${prefix}_"* seq2_weekly_fresh/; done < 313_fresh.txt
 
-Step 5: cut adapt
+Step 5: cut adapt to cut off primers from every fastq R1 and R2 (forward and reverse)
 #move into first folder of data
 cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh
 
