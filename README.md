@@ -34,7 +34,7 @@ Obvious trends - Level 4 taxa barplot of the Coastal Marine Lab 2025 microbial c
 ![plot](Plots/CML2025PCOA.png)
 Bray Curtis PCOA of the Coastal Marine Lab 2025 microbial community made through a Visual Studio Code Qiime 2 conda environment using qiime diversity core-metrics-phylogenetic and visualized with Qiime 2 View. The Bray Curtis PCOA showed clear clustering of samples by monthly time points, indicating strong seasonality within the CML environment and reinforcing conclusion from the taxa barplot. March samples fell within both winter (January to March) and Spring (April/May) clusters, while August showed more similarity to the fall and early winter months than the summer. 
 
-Natalie - HILT, LAMP, MAIN, NBL, WIS results 
+*Natalie - HILT, LAMP, MAIN, NBL, WIS results* 
 ![plot](Plots/Figure7_Natalie.png)
 Figure 7. Taxonomic bar plot made with QIIME2 View of the relative frequency at level 4 (Class) of the HILT, LAMP, MAIN, NBL sites, which were sampled monthly from September to December in 2025, and the WIS site which was sampled weekly during that time period.  
 
