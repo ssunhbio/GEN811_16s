@@ -299,3 +299,13 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads auto \
   --verbose
 
+#create rooted phylogeny merged tree  
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences merged-rep-seqs-both.qza \
+  --o-alignment aligned-rep-seqs-both.qza \
+  --o-masked-alignment masked-aligned-rep-seqs-both.qza \
+  --o-tree unrooted-tree-both.qza \
+  --o-rooted-tree rooted-tree-both.qza \
+  --p-n-threads auto \
+  --verbose 
+
