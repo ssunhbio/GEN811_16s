@@ -17,3 +17,5 @@ Methods
 
 
 Findings
+![plot](Plots/Figure7_Natalie.png)
+
