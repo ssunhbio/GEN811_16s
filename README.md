@@ -6,10 +6,10 @@ README
 ## Authors: Sara Smith, Marley Gonsalves, Natalie Danek, Elijah St. Pierre
 
 
-**Background**
+## Background
 
 
-**Methods**
+## Methods
 
 Weekly water samples were collected from 3 sites and monthly water samples from 4 sites, all within the Great Bay Watershed in New Hampshire. The weekly sites included the Coastal Marine Lab (CML) in New Castle, NH, the Jackson Estuarine Lab (JEL) in Durham, NH and Wiswall Mill (WIS) in Durham, NH. The monthly sites included Hilton Park (HILT) in Dover, NH, Miriam Jackson Park off Main Street (MAIN) in Epping, NH, the Lamprey River Boat Launch (LAMP) in Epping, NH and Newmarket Boat Launch (NBL) in Newmarket, NH. 500 mL of site sample was filtered in triplicate through 0.2 um 47 mm Cytiva filters using Thermo Scientific Nalgene Reusable Filter Units. The filters were stored in –80 C until extraction.  
 
@@ -25,7 +25,7 @@ Demultiplexed 16s fastq files from MSU were transferred to Ron using Filezilla, 
 | Marley Gonsalves  | Jackson Estuary Lab February to December 2025  | 240 | 200 | 64548 | 
 | Natelie Danek   | Wiswall, Main St. Lamprey River, and Newmarket Boat Launch September to December 2025 | 240 | 200 | 64548 | 
 
-**Findings**
+## Findings
 
 
 ![plot](Plots/CML2025_taxa_barplot.png)
@@ -39,3 +39,9 @@ Bray Curtis PCOA of the Coastal Marine Lab 2025 microbial community made through
 Figure 7. Taxonomic bar plot made with QIIME2 View of the relative frequency at level 4 (Class) of the HILT, LAMP, MAIN, NBL sites, which were sampled monthly from September to December in 2025, and the WIS site which was sampled weekly during that time period.  
 
 In this plot, on the x ais is the site_date. This barplot shows clear differences by site. The two sites with the most saltwater input and that experience tidal changes, HILT and NBL, are very similar to each other. The other 3 sites, LAMP, MAIN, and WIS, which are much farther from saltwater sources and do not experience tidal changes, have a lot of similarities to one another. HILT and NBL have a lot more of Flavobacteriales (tan, 17-28%), Pseudomonadales (dark blue, 8- 16%) and Rhodobacterales (pink, 7-20%) compared to the other sites. The other sites, LAMP, MAIN, and WIS all have the highest frequency of Burkholderiales (green, 22-60%) and second highest frequency of Frankiales (purple, 3-28%). HILT and NBL have significantly smaller amounts of Burkholderiales (green, 3-9%). NBL has a small frequency of  Frankiales (purple, 4-5%) and HILT, which is the most salty of these sites, has none. This graph therefore demonstrates a clear influence of saltwater input on taxonomic frequencies, leading to significant site differences throughout this watershed. 
+
+
+
+## REFERENCES 
+
+Bolyen, E., Rideout, J. R., Dillon, M. R., Bokulich, N. A., Abnet, C. C., Al-Ghalith, G. A., Alexander, H., Alm, E. J., Arumugam, M., Asnicar, F., Bai, Y., Bisanz, J. E., Bittinger, K., Brejnrod, A., Brislawn, C. J., Brown, C. T., Callahan, B. J., Caraballo-Rodríguez, A. M., Chase, J., … Caporaso, J. G. (2019). Reproducible, interactive, scalable and extensible microbiome data science using QIIME 2. Nature Biotechnology, 37(8), 852–857. 10.1038/s41587-019-0209-9 
