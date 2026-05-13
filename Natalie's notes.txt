@@ -1,15 +1,15 @@
-Natalie's notes
+Natalie's workflow
 
-freshwater data: WIS, HILT, NBL, LAMP, MAIN
+Analyzing sites WIS, HILT, NBL, LAMP, MAIN
 
-Workflow
-Setp 1: make a branch called "NatalieBranch" from Sara's main branch 
-Step 2: transfer files to ron via filezilla into fastq folder within the data folder 
-Step 3: make a text file with a list of the sampleIDs for the sites I am interested in
+#Setp 1: make a branch called "NatalieBranch" from Sara's main branch 
+#Step 2: transfer files to ron via filezilla into fastq folder within the data folder 
+#Step 3: make a text file with a list of the sampleIDs for the sites I am interested in
 306_fresh.txt
 313_fresh.txt
 
-Step 4: use this code to cut fastq files out for sites I am not interested in 
+#Step 4: use this code to cut fastq files out for sites I am not interested in, and put the ones I want into new files
+called seq1_weekly_fresh and seq2_weekly_fresh 
 
 mk dir seq1_weekly_fresh
 while IFS= read -r prefix; do   cp -v "${prefix}_"* seq1_weekly_fresh/; done < 306_fresh.txt
@@ -17,22 +17,281 @@ while IFS= read -r prefix; do   cp -v "${prefix}_"* seq1_weekly_fresh/; done < 3
 mkdir seq2_weekly_fresh
 while IFS= read -r prefix; do   cp -v "${prefix}_"* seq2_weekly_fresh/; done < 313_fresh.txt
 
-Step 5: cut adapt
-#move into first folder of data
-cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh
 
-#activate environment
+#Step 5: activate environment for QIIME2
 conda activate qiime2-amplicon-2026.1
 
-#test cutadapt for one sample (266):
-cutadapt     -a GTGCCAGCMGCCGCGGTAA     -A GGACTACHVGGGTWTCTAAT     -o trimmed.R1.fastq.gz     -p trimmed.R2.fastq.gz     91_R1.fastq.gz 266_R2.fastq.gz
 
-#it worked (i see trimmed files for that one sample) so now run for loop to trim everything
-for sample in *_R1.fastq.gz; do     base=$(basename "$sample" _R1.fastq.gz);     cutadapt         -a GTGCCAGCMGCCGCGGTAA         -A GGACTACHVGGGTWTCTAAT         -o "${base}_trimmed_R1.fastq.gz"         -p "${base}_trimmed_R2.fastq.gz"         "${base}_R1.fastq.gz"         "${base}_R2.fastq.gz"; done
+#cd into folder with fastq.gz
+cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh
 
-#change into seq2 folder
+#make a manifest file
+echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest.tsv 
+
+  
+#make the manifest  of absolute path for each sample and put it in the file you just made 
+for file in *_R1.fastq.gz 
+
+do 
+
+    sample=$(basename "$file" _R1.fastq.gz) 
+
+    forward=$(realpath "$file") 
+
+    reverse=$(realpath "${sample}_R2.fastq.gz") 
+
+echo -e "${sample}\t${forward}\t${reverse}" >> manifest.tsv 
+
+done
+
+
+#importing the manifest and the data in qime2 in a way that qime will recognize it (takes a couple mins)
+
+      qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh/manifest.tsv \
+  --output-path /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh/paired-end-demux.qza \
+  --input-format PairedEndFastqManifestPhred33V2
+
+#cutadapt to remove primers (will take a few mins)
+qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-front-f GTGCCAGCMGCCGCGGTAA --p-front-r GGACTACHVGGGTWTCTAAT --o-trimmed-sequences trimmed-seqs.qza --verbose 
+
+#summarize the data into a .qzv to be able to view when the quality scores drop off (takes around 20 mins)
+qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.qzv 
+
+#downloaded then uploaded the .qzv into qiime and looked to see where the quality scores start to drop off https://view.qiime2.org/
+
+#cutting forward reads at 240 and reverse reads at 200 (takes a couple hours)
+  qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs trimmed-seqs.qza \
+  --p-trunc-len-f 240 \
+  --p-trunc-len-r 200 \
+  --p-n-threads 0 \
+  --o-table feature-table.qza \
+  --o-representative-sequences rep-seqs.qza \
+  --o-denoising-stats denoising-stats.qza \
+  --o-base-transition-stats base-transition-stats.qza \
+  --verbose
+
+  #make summary table (quick)
+  #had to update the code slightly to make it work with this qiime version
+  qiime feature-table summarize \
+  --i-table feature-table.qza \
+  --o-feature-frequencies feature-frequencies.qza \
+  --o-sample-frequencies sample-frequencies.qza \
+  --o-summary feature-table.qzv
+
+  #making feature table  
+#upload a .txt metadata file with your metadata (make it in excel but save as .txt, first column should be sample-id)
+#added a column Location Date with =B2 & " - " & TEXT(I2,"mm/dd/yyyy")
+
+qiime feature-table summarize \
+  --i-table feature-table.qza \
+  --m-metadata-file metadata_seq1_weekly_fresh.txt \
+  --o-feature-frequencies feature-frequencies.qza \
+  --o-sample-frequencies sample-frequencies.qza \
+  --o-summary table.qzv
+
+#can stop here, process sequence 2, then merge and just assign taxonomy then
+#EVERYTHING AFTER HERE DOES NOT CONTAIN THE MISSING HILT FILES FOR SEQ1, BUT I DID UPDATE THE MERGED FILES
+
+#change the format of your manifest into a qza that can be imported into qime (will take a few minutes to run) 
+
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh/manifest.tsv \
+  --output-path /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh/paired-end-demux.qza \
+  --input-format PairedEndFastqManifestPhred33V2
+
+
+#Get Silva for taxonomic classification
+curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza 
+
+#assign taxonomy  (takes a while, don’t necessarily need to do this now bc later we will do it after we merge the 2 sequences )
+qiime feature-classifier classify-sklearn \
+  --i-classifier silva-138-99-nb-classifier.qza \
+  --i-reads rep-seqs.qza \
+  --o-classification taxonomy.qza
+
+#again, don’t necessarily need to do until after merge
+qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.qzv
+
+
+
+  qiime taxa barplot \
+  --i-table feature-table.qza \
+  --i-taxonomy taxonomy.qza \
+  --m-metadata-file metadata_seq1_weekly_fresh.txt \
+  --o-visualization taxa-bar-plots.qzv
+  
+  #you now have a taxa-bar-plots.qzv file that can be downloaded and then loaded into Qiime website to visualize taxonomy barplots of the data https://view.qiime2.org/
+
+
+
+  #SEQUENCE TWO
+
+conda activate qiime2-amplicon-2026.1
+
+  #cd into seq2 folder with fastq.gz
 cd /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh
 
-#do cutadapt for these files
+#make a manifest2 file
+echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest2.tsv 
 
+  
+#make the manifest 
+for file in *_R1.fastq.gz 
+
+do 
+
+    sample=$(basename "$file" _R1.fastq.gz) 
+
+    forward=$(realpath "$file") 
+
+    reverse=$(realpath "${sample}_R2.fastq.gz") 
+
+echo -e "${sample}\t${forward}\t${reverse}" >> manifest2.tsv 
+
+done
+
+#change the format of your manifest into a qza that can be imported into qime (will take a few minutes to run) 
+      qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh/manifest2.tsv \
+  --output-path /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh/paired-end-demux2.qza \
+  --input-format PairedEndFastqManifestPhred33V2
+
+#cutadapt to remove primers (will take 15-30 mins)
+qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-front-f GTGCCAGCMGCCGCGGTAA --p-front-r GGACTACHVGGGTWTCTAAT --o-trimmed-sequences trimmed-seqs.qza --verbose 
+
+#summarize the data into a .qzv2 to be able to view when the quality scores drop off 
+qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs2.qzv 
+
+#cutting forward reads at 240 and reverse reads at 240
+  qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs trimmed-seqs2.qza \
+  --p-trunc-len-f 240 \
+  --p-trunc-len-r 240 \
+  --p-n-threads 0 \
+  --o-table feature-table2.qza \
+  --o-representative-sequences rep-seqs2.qza \
+  --o-denoising-stats denoising-stats2.qza \
+  --o-base-transition-stats base-transition-stats2.qza \
+  --verbose
+
+#Visualize results 
+qiime feature-table summarize \
+  --i-table feature-table2.qza \
+  --o-feature-frequencies feature-frequencies2.qza \
+  --o-sample-frequencies sample-frequencies2.qza \
+  --o-summary feature-table2.qzv
+
+
+#assign taxonomy  (takes a while)
+qiime feature-classifier classify-sklearn \
+  --i-classifier silva-138-99-nb-classifier.qza \
+  --i-reads rep-seqs2.qza \
+  --o-classification taxonomy2.qza
+
+qiime metadata tabulate --m-input-file taxonomy2.qza --o-visualization taxonomy2.qzv
+
+#making feature table  
+#upload a .txt metadata file with your metadata (make it in excel but save as .txt, first column should be sample-id)
+#added a column Location Date with =B2 & " - " & TEXT(I2,"mm/dd/yyyy")
+#called it metadat_seq2_weekly_fresh
+
+qiime feature-table summarize \
+  --i-table feature-table2.qza \
+  --m-metadata-file metadata_seq2_weekly_fresh.txt \
+  --o-feature-frequencies feature-frequencies2.qza \
+  --o-sample-frequencies sample-frequencies2.qza \
+  --o-summary table2.qzv
+
+  qiime taxa barplot \
+  --i-table feature-table2.qza \
+  --i-taxonomy taxonomy2.qza \
+  --m-metadata-file metadata_seq2_weekly_fresh.txt \
+  --o-visualization taxa-bar-plots2.qzv
+
+
+qiime taxa barplot \
+  --i-table feature-table2.qza \
+  --i-taxonomy taxonomy2.qza \
+  --m-metadata-file metadata_seq2_weekly_fresh.txt \
+  --o-visualization taxa-bar-plots2.qzv
+
+
+
+#COMBINING/MERGING OUTPUT FROM BOTH RUNS- FULLY UPDATED WITH MISSING HILTON SAMPLES
+cd /home/users/nnd1011/GEN811_16s/data/fastq
+
+#make a new directory to merge both sequences in
+mkdir both_seq_merge
+
+#copy the feature-table.qza and feature-table2.qza and rep-seqs.qza and rep=seqs2.qza into this new directory 
+cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh
+cp feature-table.qza /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
+cp rep-seqs.qza /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
+cd /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh
+cp feature-table2.qza /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
+cp rep-seqs2.qza /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
+
+#change back to new directory
+cd /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
+
+#Table merge  
+ 
+qiime feature-table merge --i-tables feature-table.qza --i-tables feature-table2.qza --o-merged-table merged-table.qza 
+
+#rep-seqs merge 
+ 
+qiime feature-table merge-seqs --i-data rep-seqs.qza --i-data rep-seqs2.qza --o-merged-data merged-rep-seqs.qza 
+ 
+ #need to make a metadate table with the info form both sequences. I did this in excel, saved as .txt, uploaded this into VS code then ran this code to convert to .tsv:
+cp metadata_both_seq_weekly_fresh.txt metadata_both_seq_weekly_fresh.tsv
+
+#Generate qzv for table merge 
+
+qiime feature-table summarize \ (pretty fast)
+  --i-table merged-table.qza \
+  --m-metadata-file metadata_both_seq_weekly_fresh.tsv \
+  --o-feature-frequencies feature-frequencies.qza \
+  --o-sample-frequencies sample-frequencies.qza \
+  --o-summary summary-both.qzv 
+
+
+#Get Silva for taxonomic classification 
+
+  curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza
+
+#Generate qzv for rep-seqs 
+qiime feature-table tabulate-seqs \
+  --i-data merged-rep-seqs.qza \
+  --o-visualization merged-rep-seqs.qzv
+
+
+#assign taxonomy   
+qiime feature-classifier classify-sklearn --i-classifier silva-138-99-nb-classifier.qza --i-reads merged-rep-seqs.qza --o-classification taxonomy-both.qza 
+
+#Taxa barplot 
+ 
+qiime taxa barplot --i-table merged-table.qza --i-taxonomy taxonomy.qza --m-metadata-file metadata_both_seq_weekly_fresh.txt --o-visualization taxa-bar-plots-both.qzv    
+
+#now have taxa bar plots that can be visualized in QIIME2 VIEW website https://view.qiime2.org/
+
+#MOVING ON TO MAKING PCOAS IN QIIME2
+
+cd /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge
+
+conda activate qiime2-amplicon-2026.1
+
+#create rooted phylogeny tree (takes a while)
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences merged-rep-seqs.qza \
+  --o-alignment aligned-rep-seqs-both.qza \
+  --o-masked-alignment masked-aligned-rep-seqs-both.qza \
+  --o-tree unrooted-tree-both.qza \
+  --o-rooted-tree rooted-tree-both.qza \
+  --p-n-threads auto \
+  --verbose
 
