@@ -283,13 +283,16 @@ qiime taxa barplot --i-table merged-table.qza --i-taxonomy taxonomy.qza --m-meta
 
 #now have taxa bar plots that can be visualized in QIIME2 VIEW website https://view.qiime2.org/
 
-#MOVING ON TO MAKING PCOAS IN QIIME2
+MOVING ON TO MAKING PCOAS and BRAY CURTIS PLOTS IN QIIME2
 
 cd /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge
 
 conda activate qiime2-amplicon-2026.1
 
-#create rooted phylogeny tree (takes a while)
+
+#create rooted phylogeny merged tree  (takes a while)
+ 
+qiime phylogeny align-to-tree-mafft-fasttree \
 qiime phylogeny align-to-tree-mafft-fasttree \
   --i-sequences merged-rep-seqs.qza \
   --o-alignment aligned-rep-seqs-both.qza \
@@ -297,15 +300,32 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --o-tree unrooted-tree-both.qza \
   --o-rooted-tree rooted-tree-both.qza \
   --p-n-threads auto \
-  --verbose
-
-#create rooted phylogeny merged tree  
-qiime phylogeny align-to-tree-mafft-fasttree \
-  --i-sequences merged-rep-seqs-both.qza \
-  --o-alignment aligned-rep-seqs-both.qza \
-  --o-masked-alignment masked-aligned-rep-seqs-both.qza \
-  --o-tree unrooted-tree-both.qza \
-  --o-rooted-tree rooted-tree-both.qza \
-  --p-n-threads auto \
   --verbose 
 
+
+#create a folder with qza to summarize to choose rarefaction (will create a folder called feature-table-summary nested in both_merge_seq folder)
+qiime feature-table summarize \
+  --i-table merged-table.qza \
+  --output-dir feature-table-summary \
+  --m-metadata-file metadata_both_seq_weekly_fresh.txt 
+
+
+#download and view summary.qzv in qiime viewer.   
+#Pick a depth where most/all samples are retained, but high enough to capture sufficient diversity, samples below your chosen depth will be dropped from analysis. To do this, go to the interactive sample detail.  Move the slider under “Sampling depth” until the percentage after the number of samples starts to drop below 100% (“Retained X (X%) observations in X (X%) samples at the specified sampling depth).  Slide it back to 100%, and use the number generated as your rarefaction value.    
+
+#Produce a bunch of diversity values (replace p-sampling-depth with your own value). Will create a folder called “core-metrics-results" to house all the values. 
+ qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree-both.qza \
+  --i-table merged-table.qza \
+  --p-sampling-depth 36468 \
+  --m-metadata-file metadata_both_seq_weekly_fresh.txt \
+  --output-dir core-metrics-results
+
+  #generate pcoa .qzv from .qza(creates weighted-unifrac-emperor.qzv which can be loaded into qiime viewer)
+  cp metadata_both_seq_weekly_fresh.txt /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/core-metrics-results/
+  cd core-metrics-results/
+
+  qiime emperor plot \
+  --i-pcoa weighted_unifrac_pcoa_results.qza \
+  --m-metadata-file metadata_both_seq_weekly_fresh.txt \
+  --o-visualization weighted-unifrac-emperor.qzv
