@@ -23,7 +23,7 @@ Demultiplexed 16S fastq files from MSU were transferred to Ron using Filezilla, 
 | Sara Smith | Coastal Marine Lab 2025| 240 | 200 | 64548 | 
 | Elijah St. Pierre | Coastal Marine Lab 2025  | 240 | 200 | 64548 | 
 | Marley Gonsalves  | Jackson Estuary Lab February to December 2025  | 240 | 200 | 64548 | 
-| Natalie Danek   | Wiswall, Main St. Lamprey River, and Newmarket Boat Launch September to December 2025 | 240 | 200 | 64548 | 
+| Natalie Danek   | Wiswall, Main St. Lamprey River, and Newmarket Boat Launch September to December 2025 | 240 | 200 | 36468 | 
 
 ## Findings
 
