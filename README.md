@@ -1,18 +1,15 @@
 README
 
 
+**Project Name**: Bioinformatic analysis for spatial and temporal trends of 16S data from weekly water samples taken in Great Bay Estuary, New Hampshire
+
+**Authors**: Sara Smith, Marley Gonsalves, Natalie Danek, Elijah St. Pierre
 
 
-Project Name: Bioinformatic analysis for spatial and temporal trends of 16S data from weekly water samples taken in Great Bay Estuary, New Hampshire
+**Background**
 
 
-Authors: Sara Smith, Marley Gonsalves, Natalie Danek, Elijah St. Pierre
-
-
-Background
-
-
-Methods
+**Methods**
 
 Weekly water samples were collected from 3 sites and monthly water samples from 4 sites, all within the Great Bay Watershed in New Hampshire. The weekly sites included the Coastal Marine Lab (CML) in New Castle, NH, the Jackson Estuarine Lab (JEL) in Durham, NH and Wiswall Mill (WIS) in Durham, NH. The monthly sites included Hilton Park (HILT) in Dover, NH, Miriam Jackson Park off Main Street (MAIN) in Epping, NH, the Lamprey River Boat Launch (LAMP) in Epping, NH and Newmarket Boat Launch (NBL) in Newmarket, NH. 500 mL of site sample was filtered in triplicate through 0.2 um 47 mm Cytiva filters using Thermo Scientific Nalgene Reusable Filter Units. The filters were stored in –80 C until extraction.  
 
@@ -20,7 +17,7 @@ DNA extractions were done with Zymo Biomics Mini-DNA prep kit with bead beating.
 
 Demultiplexed 16s fastq files from MSU were transferred to Ron using Filezilla, then split amongst group members for analysis (Table 1). Metadata files were generated in excel with the first column being the sample IDs of the data they were analyzing, and the following columns including the data the sample was collected, site, and other measurements associated with each sample. This was saved as a .txt file and loaded into Ron. Qiime 2 (qiime2-amplicon-2026.1) was used in a Conda environment, and Cutadapt was used to remove the primers (Bolyen et al., 2019). A manifest file was created and run through QIIME tools import. The data was then summarized into a .qzv file and visualized with the QIIME2 View (https://view.qiime2.org/) to create quality scores plots. Forward and reverse reads were cut where the quality score fell below 30 (Table 1). A feature table summary was generated, and a feature table was used to map IDs to sequences. Silva (silva-138-99-nb-classifier) was used to assign taxonomy. Rooted phylogeny trees were created for each site, and summary tables were visualized to determine rarefaction value. Depth was based on 100% sample retention while still allowing for sufficient diversity (Table 1). Samples below depth were dropped from analysis. Diversity values and Principal Coordinate Analyses (PCOA) were generated using qiime diversity core-metrics-phylogenetic. 
 
-TABLE 1
+*TABLE 1*
 |Group Member | Data Set | Forward Cut | Reverse Cut | Rarefaction | 
 | -------- | -------- | -------- | -------- | -------- | 
 | Sara Smith | Coastal Marine Lab 2025| 240 | 200 | 64548 | 
@@ -28,7 +25,7 @@ TABLE 1
 | Marley Gonsalves  | Jackson Estuary Lab February to December 2025  | 240 | 200 | 64548 | 
 | Natelie Danek   | Wiswall, Main St. Lamprey River, and Newmarket Boat Launch September to December 2025 | 240 | 200 | 64548 | 
 
-Findings
+**Findings**
 ![plot](Plots/Figure7_Natalie.png)
 Figure 7. Taxonomic bar plot made with QIIME2 View of the relative frequency at level 4 (Class) of the HILT, LAMP, MAIN, NBL sites, which were sampled monthly from September to December in 2025, and the WIS site which was sampled weekly during that time period.  
 
