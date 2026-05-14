@@ -1,0 +1,81 @@
+#Start in myDNAseq1
+
+cd /home/users/sen97/GEN811_16s/myDNAseq1
+
+conda activate qiime2-amplicon-2026.1 
+
+echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest.tsv 
+
+for file in *_R1.fastq.gz 
+do 
+     sample=$(basename "$file" _R1.fastq.gz) 
+     forward=$(realpath "$file") 
+     reverse=$(realpath "${sample}_R2.fastq.gz") 
+
+  echo -e "${sample}\t${forward}\t${reverse}" >> manifest.tsv 
+done 
+
+  qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'--input-path /home/users/sen97/GEN811_16s/myDNAseq1/manifest.tsv --output-path /home/users/sen97/GEN811_16s/myDNAseq1/paired-end-demux.qza --input-format PairedEndFastqManifestPhred33V2 
+
+qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-front-f GTGCCAGCMGCCGCGGTAA --p-front-r GGACTACHVGGGTWTCTAAT --o-trimmed-sequences trimmed-seqs.qza --verbose 
+
+qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.qzv 
+ 
+qiime dada2 denoise-paired --i-demultiplexed-seqs trimmed-seqs.qza --p-trunc-len-f 240 --p-trunc-len-r 200 --p-n-threads 0 --o-table feature-table.qza --o-representative-sequences rep-seqs.qza --o-denoising-stats denoising-stats.qza --o-base-transition-stats base-transition-stats.qza --verbose 
+
+qiime feature-table summarize \ --i-table feature-table.qza \ --output-dir ./summarize-output 
+
+#copied feature-table.qza and rep-seqs.qza to myDNAseq2
+
+cd /home/users/sen97/GEN811_16s/myDNAseq2
+
+#All below code takes place in myDNAseq2.
+
+echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest.tsv 
+
+for file in *_R1.fastq.gz 
+do 
+     sample=$(basename "$file" _R1.fastq.gz) 
+     forward=$(realpath "$file") 
+     reverse=$(realpath "${sample}_R2.fastq.gz") 
+
+echo -e "${sample}\t${forward}\t${reverse}" >> manifest.tsv 
+done 
+
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'--input-path /home/users/sen97/GEN811_16s/myDNAseq2/manifest.tsv --output-path /home/users/sen97/GEN811_16s/myDNAseq1/paired-end-demux.qza --input-format PairedEndFastqManifestPhred33V2 
+
+qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-front-f GTGCCAGCMGCCGCGGTAA --p-front-r GGACTACHVGGGTWTCTAAT --o-trimmed-sequences trimmed-seqs.qza --verbose 
+
+qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.qzv 
+
+qiime dada2 denoise-paired --i-demultiplexed-seqs trimmed-seqs.qza --p-trunc-len-f 240 --p-trunc-len-r 200 --p-n-threads 0 --o-table feature-table2.qza --o-representative-sequences rep-seqs2.qza --o-denoising-stats denoising-stats.qza --o-base-transition-stats base-transition-stats.qza --verbose 
+
+qiime feature-table merge --i-tables feature-table.qza --i-tables feature-table2.qza --o-merged-table merged-table.qza 
+
+qiime feature-table merge-seqs --i-data rep-seqs.qza --i-data rep-seqs2.qza --o-merged-data merged-rep-seqs.qza 
+
+qiime feature-table summarize --i-table merged-table.qza --m-metadata-file metadata.txt --o-feature-frequencies feature-frequencies.qza --o-sample-frequencies sample-frequencies.qza --o-summary summary.qzv 
+
+qiime feature-table tabulate-seqs \ --i-data merged-rep-seqs.qza \ --o-visualization merged-rep-seqs.qzv 
+
+curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza 
+
+qiime feature-classifier classify-sklearn --i-classifier silva-138-99-nb-classifier.qza --i-reads merged-rep-seqs.qza --o-classification taxonomy.qza 
+
+qiime taxa barplot --i-table merged-table.qza --i-taxonomy taxonomy.qza --m-metadata-file metadata.txt --o-visualization taxa-bar-plots.qzv    
+
+qiime phylogeny align-to-tree-mafft-fasttree --i-sequences merged-rep-seqs.qza --o-alignment aligned-rep-seqs.qza --o-masked-alignment masked-aligned-rep-seqs.qza --o-tree unrooted-tree.qza --o-rooted-tree rooted-tree.qza --p-n-threads auto --verbose 
+
+qiime feature-table summarize --i-table merged-table.qza --output-dir feature-table-summary --m-metadata-file metadata.txt 
+
+qiime diversity core-metrics-phylogenetic \ --i-phylogeny rooted-tree.qza \ --i-table feature-table.qza \ --p-sampling-depth 64548 \ --m-metadata-file metadata.txt \ --output-dir core-metrics-results 
+
+qiime tools export --input-path feature-table.qza --output-path exported/feature-table 
+
+biom convert -i exported/feature-table/feature-table.biom  -o exported/feature-table/feature-table.tsv  --to-tsv 
+
+qiime tools export --input-path taxonomy.qza --output-path exported/taxonomy 
+
+qiime tools export --input-path rooted-tree.qza \ --output-path exported/tree 
+
+ 
