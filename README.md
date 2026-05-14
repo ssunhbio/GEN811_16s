@@ -48,7 +48,7 @@ In this plot, on the x ais is the site_date and on the y axis is the relative fr
 
 ![plot](Plots/PCOA_Natalie.png)
 
-Figure #. 
+Figure #
 
 **Citations**
 
