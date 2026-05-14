@@ -49,7 +49,9 @@ In this plot, on the x ais is the site_date and on the y axis is the relative fr
 
 ![plot](Plots/PCOA_Natalie.png)
 
-Figure #
+Figure #. Weighted unifrac PCOA plot by site of HILT, LAMP, MAIN, NBL, and WIS sites made with QIIME2 View. 
+
+This is a weighted unifrac PCOA plot of the microbial communities at the HILT, LAMP, MAIN, NBL, and WIS sites, colored by site. There is clear grouping happening by site. HILT appears to be the most different from the other sites, especially from LAMP, MAIN, and WIS. This makes sense as HILT is a much more tidal and salty site compared to the others. NBL is split between the two groups, which makes sense because it has some tidal flux but not as much as HILT. The three freshwater, non tidal sites, LAMP, MAIN and WIS, are very grouped together, indicating similar microbial community makeup. These findings are very similar to the trends seen in the taxonomic barplot (Figure #). 
 
 **Citations**
 
