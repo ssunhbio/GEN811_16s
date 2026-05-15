@@ -21,7 +21,7 @@ Two sequences of Demultiplexed 16s fastq files from MSU were transferred to Ron 
 | Group Member | Data Set | Sequence 1 Forward/Reverse Cut | Sequence 2 Forward/Reverse Cut | Rarefaction | 
 | -------- | -------- | -------- | -------- | -------- | 
 | Sara Smith | CML 2025| 240/200 | 240/200 | 64548 | 
-| Elijah St. Pierre | CML 2024  | 240/200 | 240/200 | 64548 | 
+| Elijah St. Pierre | CML 2024  | 240/200 | N/A | 64548 | 
 | Marley Gonsalves    | JEL February to December 2025  | 240/200 | 240/200 | 64548 | 
 | Natelie Danek   | WIS, MAIN, LAMP, and NBL September to December 2025 | 240/200 | 240/240 | 64548 | 
 
