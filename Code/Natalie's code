@@ -3,14 +3,13 @@ Natalie's workflow
 
 #Sites: WIS, HILT, NBL, LAMP, MAIN
 
-
 #Setp 1: make a branch called "NatalieBranch" from Sara's main branch 
-#Step 2: transfer files to ron via filezilla into fastq folder within the data folder 
-#Step 3: make a text file with a list of the sampleIDs for the sites I am interested in
+#Step 2: transfer fastq files to Ron via filezilla into fastq folder within the data folder - separated intwo 2 runs
+#Step 3: make a text file with a list of the sampleIDs for the sites I am doing (WIS, HILT, NBL, LAMP, MAIN) for each run
 306_fresh.txt
 313_fresh.txt
 
-#Step 4: use this code to cut fastq files out for sites I am not interested in, and put the ones I want into new files
+#Step 4: use this code to cut fastq files out for sites I am not interested in, and put the ones I want into new files, for each run,
 called seq1_weekly_fresh and seq2_weekly_fresh 
 
 mk dir seq1_weekly_fresh
@@ -20,16 +19,16 @@ mkdir seq2_weekly_fresh
 while IFS= read -r prefix; do   cp -v "${prefix}_"* seq2_weekly_fresh/; done < 313_fresh.txt
 
 
-#stp 5 activate environment for QIIME2
+#step 5 activate environment for QIIME2
 conda activate qiime2-amplicon-2026.1
 
+#PROCESSING SEQUENCE 1 (20260306_16SV4_PE250)
 
 #cd into folder with fastq.gz
 cd /home/users/nnd1011/GEN811_16s/data/fastq/20260306_16SV4_PE250/seq1_weekly_fresh
 
 #make a manifest file
 echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest.tsv 
-
   
 #make the manifest  of absolute path for each sample and put it in the file you just made 
 for file in *_R1.fastq.gz 
@@ -61,7 +60,7 @@ qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-
 #summarize the data into a .qzv to be able to view when the quality scores drop off (takes around 20 mins)
 qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.qzv 
 
-#downloaded then uploaded the .qzv into qiime and looked to see where the quality scores start to drop off https://view.qiime2.org/
+#downloaded then uploaded the .qzv and load into qiime2 view and looked to see where the quality scores start to drop off https://view.qiime2.org/
 
 #cutting forward reads at 240 and reverse reads at 200 (takes a couple hours)
   qiime dada2 denoise-paired \
@@ -76,7 +75,6 @@ qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.q
   --verbose
 
   #make summary table (quick)
-  #had to update the code slightly to make it work with this qiime version
   qiime feature-table summarize \
   --i-table feature-table.qza \
   --o-feature-frequencies feature-frequencies.qza \
@@ -95,7 +93,6 @@ qiime feature-table summarize \
   --o-summary table.qzv
 
 #can stop here, process sequence 2, then merge and just assign taxonomy then
-#EVERYTHING AFTER HERE DOES NOT CONTAIN THE MISSING HILT FILES FOR SEQ1, BUT I DID UPDATE THE MERGED FILES
 
 #change the format of your manifest into a qza that can be imported into qime (will take a few minutes to run) 
 
@@ -118,8 +115,6 @@ qiime feature-classifier classify-sklearn \
 #again, don’t necessarily need to do until after merge
 qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.qzv
 
-
-
   qiime taxa barplot \
   --i-table feature-table.qza \
   --i-taxonomy taxonomy.qza \
@@ -131,9 +126,9 @@ qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.q
 
 
 
+  #PROCESSING SEQUENCE TWO (20260313_16SV4_PE250)
 
-  #SEQUENCE TWO
-
+#activate conda environment 
 conda activate qiime2-amplicon-2026.1
 
   #cd into seq2 folder with fastq.gz
@@ -226,7 +221,7 @@ qiime taxa barplot \
 
 
 
-#COMBINING/MERGING OUTPUT FROM BOTH RUNS- FULLY UPDATED WITH MISSING HILTON SAMPLES
+#COMBINING/MERGING OUTPUT FROM BOTH RUNS
 cd /home/users/nnd1011/GEN811_16s/data/fastq
 
 #make a new directory to merge both sequences in
@@ -256,7 +251,7 @@ cp metadata_both_seq_weekly_fresh.txt metadata_both_seq_weekly_fresh.tsv
 
 #Generate qzv for table merge 
 
-qiime feature-table summarize \ (pretty fast)
+qiime feature-table summarize \ 
   --i-table merged-table.qza \
   --m-metadata-file metadata_both_seq_weekly_fresh.tsv \
   --o-feature-frequencies feature-frequencies.qza \
@@ -265,7 +260,6 @@ qiime feature-table summarize \ (pretty fast)
 
 
 #Get Silva for taxonomic classification 
-
   curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza
 
 #Generate qzv for rep-seqs 
@@ -283,7 +277,8 @@ qiime taxa barplot --i-table merged-table.qza --i-taxonomy taxonomy.qza --m-meta
 
 #now have taxa bar plots that can be visualized in QIIME2 VIEW website https://view.qiime2.org/
 
-MOVING ON TO MAKING PCOAS and BRAY CURTIS PLOTS IN QIIME2
+
+#MOVING ON TO MAKING PCOAS and BRAY CURTIS PLOTS IN QIIME2
 
 cd /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge
 
@@ -325,6 +320,7 @@ qiime feature-table summarize \
   cp metadata_both_seq_weekly_fresh.txt /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/core-metrics-results/
   cd core-metrics-results/
 
+#convert the pcoa files into format that qimme2 view needs, then upload the weighted-unifrac-emperor.qzv into qiime2 viewer to view weighted unifrac pcoa plot
   qiime emperor plot \
   --i-pcoa weighted_unifrac_pcoa_results.qza \
   --m-metadata-file metadata_both_seq_weekly_fresh.txt \
