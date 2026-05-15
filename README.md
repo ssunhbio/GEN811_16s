@@ -16,7 +16,7 @@ Water samples were collected weekly from 3 sites and monthly from 4 sites, all w
 
 DNA was extracted with ZymoBIOMICS DNA miniprep kits with bead beating. DNA concentration was measured using Qubit™ 1X dsDNA HS (High Sensitivity) Assay Kits. 16S PCR was conducted using 16S-V4 primer pair: forward (515F): GTGCCAGCMGCCGCGGTAA, and reverse (806R): GGACTACHVGGGTWTCTAAT (Kozich et al., 2013). The PCR amplification profile was 2 minutes at 95 °C, 30 cycles of 20 seconds at 95 °C, 30 seconds at 50 °C, 1 minute at 72 °C, then followed by 72 °C for 5 minutes, and then held at 4 °C. Following PCR, 5 µL of product was run on an electrophoresis gel, with a 100 bp ladder and a negative control to check for contamination. Sample concentrations were standardized when needed by dilution of Nuclease Free Water to 10 ng µL-1. 30 µL per sample was sent to Michigan State University (MSU) in two 96 well PCR-type plates for paired-end 16S AVITI sequencing.   
 
-Two sequences of Demultiplexed 16s fastq files from MSU were transferred to Ron using Filezilla, then split amongst group members for analysis (Table 1). Each dataset was analyzed in the same way, using the following procedure. 
+Two sequences of Demultiplexed 16S fastq files from MSU were transferred to Ron using Filezilla, then split amongst group members for analysis (Table 1). Each dataset was analyzed in the same way, using the following procedure. 
 
 | Group Member | Data Set | Sequence 1 Forward/Reverse Cut | Sequence 2 Forward/Reverse Cut | Rarefaction | 
 | -------- | -------- | -------- | -------- | -------- | 
