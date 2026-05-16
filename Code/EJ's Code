@@ -1,0 +1,69 @@
+All data was transfered from Premise to local, and from local to RON, via File Zillla. Data was from Sequence 1, Coastal Marine Lab 2024, Feb-Dec. 
+
+A directory was made specifically for this, called 16s-CML-seq1.
+  mkdir -p HARVEY_/DATA/16s-CML/16s-CML-seq1
+
+Moved to new directory 
+  cd ~/HARVEY_/DATA/16s-CML/16s-CML-seq1
+
+Activated QIIME enviornment 
+  conda activate qiime2-amplicon-2026.1
+
+Then followed the below coding process. 
+
+ for file in *_R1.fastq.gz ; do       sample=$(basename "$file" _R1.fastq.gz) ;      forward=$(realpath "$file") ;      reverse=$(realpath "${sample}_R2.fastq.gz")    echo -e "${sample}\t${forward}\t${reverse}" >> manifest.tsv ; done 
+less manifest.tsv 
+
+# When making the manifest I had to manually change the the reverse reads to match the sample ID of the forward reads. It is unclear why the reverse reads would not match the forward reads, as each ID was replaced with a "9". 
+
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path /home/users/ejs1095/harvey_/DATA/16s-CML/16s-CML-seq1/manifest.tsv --output-path /home/users/ejs1095/harvey_/DATA/16s-CML/16s-CML-seq1/paired-end-demux.qza --input-format PairedEndFastqManifestPhred33V2
+
+qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-front-f GTGCCAGCMGCCGCGGTAA --p-front-r GGACTACHVGGGTWTCTAAT --o-trimmed-sequences trimmed-seqs.qza --verbose
+
+qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.qzv
+
+# at demux summarize I then downloaded the file and uploaded it to QIIME 2 View to visualize. This helped me choose my cutoff regions for Forward and Reverse. 
+
+qiime dada2 denoise-paired --i-demultiplexed-seqs trimmed-seqs.qza --p-trunc-len-f 190 --p-trunc-len-r 210 --p-n-threads 0 --o-table feature-table.qza --o-representative-sequences rep-seqs.qza --o-denoising-stats denoising-stats.qza --o-base-transition-stats base-transition-stats.qza --verbose
+
+qiime feature-table summarize \--i-table feature-table.qza \--output-dir ./summarize-output
+
+curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza
+# curled to get SIlva for taxonomic classification 
+
+qiime feature-classifier classify-sklearn --i-classifier silva-138-99-nb-classifier.qza --i-reads rep-seqs.qza --o-classification taxonomy.qza
+
+qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.qzv
+
+qiime feature-table summarize --i-table feature-table.qza --m-metadata-file metadata.txt --o-feature-frequencies feature-frequencies.qza  --o-sample-frequencies sample-frequencies.qza --o-summary table.qzv
+# Metadata used for this was combined from two seperate excel spreadsheet tabs. One sheet had ID's for each sample, the other had additional information with no ID's. I combined them using CHATGpt and confirmed accuracy by random sampling the results. Tables were combined by Date, Location and ID. Random visual sampling supported an accurate combination of tables. 
+
+qiime taxa barplot --i-table feature-table.qza --i-taxonomy taxonomy.qza --m-metadata-file metadata.txt --o-visualization taxa-bar-plots.qzv
+# Barplot was opened in QIIME 2 View and adjusted to level 4 taxonimic level for more detail. 
+
+# because all 2024 data was from only a single sequencing run, no merging steps were required. 
+
+qiime phylogeny align-to-tree-mafft-fasttree --i-sequences rep-seqs.qza --o-alignment aligned-rep-seqs.qza --o-masked-alignment masked-aligned-rep-seqs.qza --o-tree unrooted-tree.qza
+
+qiime feature-table summarize --i-table feature-table.qza --output-dir feature-table-summary --m-metadata-file metadata.tx
+
+qiime diversity core-metrics-phylogenetic \--i-phylogeny rooted-tree.qza \--i-table feature-table.qza \--p-sampling-depth 70389 \--m-metadata-file metadata.txt \--output-dir core-metrics-results
+
+# Bray_Curtis was then downloaded to local and viewed on QIIME 2 View. Adjustments to color were made for the PCOA to be more visually interpretable. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
