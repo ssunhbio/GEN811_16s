@@ -4,7 +4,7 @@ Natalie's workflow
 #Sites: WIS, HILT, NBL, LAMP, MAIN
 
 #Setp 1: make a branch called "NatalieBranch" from Sara's main branch 
-#Step 2: transfer fastq files to Ron via filezilla into fastq folder within the data folder - separated intwo 2 runs
+#Step 2: transfer fastq files to Ron via filezilla into fastq folder within the data folder - separated into two 2 runs
 #Step 3: make a text file with a list of the sampleIDs for the sites I am doing (WIS, HILT, NBL, LAMP, MAIN) for each run
 306_fresh.txt
 313_fresh.txt
@@ -74,7 +74,7 @@ qiime demux summarize --i-data trimmed-seqs.qza --o-visualization trimmed-seqs.q
   --o-base-transition-stats base-transition-stats.qza \
   --verbose
 
-  #make summary table (quick)
+  #make summary table
   qiime feature-table summarize \
   --i-table feature-table.qza \
   --o-feature-frequencies feature-frequencies.qza \
@@ -94,7 +94,7 @@ qiime feature-table summarize \
 
 #can stop here, process sequence 2, then merge and just assign taxonomy then
 
-#change the format of your manifest into a qza that can be imported into qime (will take a few minutes to run) 
+#change the format of your manifest into a qza that can be imported into qime  
 
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
@@ -106,13 +106,12 @@ qiime tools import \
 #Get Silva for taxonomic classification
 curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza 
 
-#assign taxonomy  (takes a while, don’t necessarily need to do this now bc later we will do it after we merge the 2 sequences )
+#assign taxonomy  
 qiime feature-classifier classify-sklearn \
   --i-classifier silva-138-99-nb-classifier.qza \
   --i-reads rep-seqs.qza \
   --o-classification taxonomy.qza
 
-#again, don’t necessarily need to do until after merge
 qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.qzv
 
   qiime taxa barplot \
@@ -121,9 +120,7 @@ qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.q
   --m-metadata-file metadata_seq1_weekly_fresh.txt \
   --o-visualization taxa-bar-plots.qzv
   
-  #you now have a taxa-bar-plots.qzv file that can be downloaded and then loaded into Qiime website to visualize taxonomy barplots of the data https://view.qiime2.org/
-
-
+  #now have a taxa-bar-plots.qzv file that can be downloaded and then loaded into Qiime website to visualize taxonomy barplots of the data https://view.qiime2.org/
 
 
   #PROCESSING SEQUENCE TWO (20260313_16SV4_PE250)
@@ -136,7 +133,6 @@ cd /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fr
 
 #make a manifest2 file
 echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest2.tsv 
-
   
 #make the manifest 
 for file in *_R1.fastq.gz 
@@ -153,14 +149,14 @@ echo -e "${sample}\t${forward}\t${reverse}" >> manifest2.tsv
 
 done
 
-#change the format of your manifest into a qza that can be imported into qime (will take a few minutes to run) 
+#change the format of your manifest into a qza that can be imported into qime 
       qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
   --input-path /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh/manifest2.tsv \
   --output-path /home/users/nnd1011/GEN811_16s/data/fastq/20260313_16SV4_PE250/seq2_weekly_fresh/paired-end-demux2.qza \
   --input-format PairedEndFastqManifestPhred33V2
 
-#cutadapt to remove primers (will take 15-30 mins)
+#cutadapt to remove primers
 qiime cutadapt trim-paired --i-demultiplexed-sequences paired-end-demux.qza --p-front-f GTGCCAGCMGCCGCGGTAA --p-front-r GGACTACHVGGGTWTCTAAT --o-trimmed-sequences trimmed-seqs.qza --verbose 
 
 #summarize the data into a .qzv2 to be able to view when the quality scores drop off 
@@ -186,7 +182,7 @@ qiime feature-table summarize \
   --o-summary feature-table2.qzv
 
 
-#assign taxonomy  (takes a while)
+#assign taxonomy
 qiime feature-classifier classify-sklearn \
   --i-classifier silva-138-99-nb-classifier.qza \
   --i-reads rep-seqs2.qza \
@@ -239,25 +235,21 @@ cp rep-seqs2.qza /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
 cd /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge/
 
 #Table merge  
- 
 qiime feature-table merge --i-tables feature-table.qza --i-tables feature-table2.qza --o-merged-table merged-table.qza 
 
 #rep-seqs merge 
- 
 qiime feature-table merge-seqs --i-data rep-seqs.qza --i-data rep-seqs2.qza --o-merged-data merged-rep-seqs.qza 
  
  #need to make a metadate table with the info form both sequences. I did this in excel, saved as .txt, uploaded this into VS code then ran this code to convert to .tsv:
 cp metadata_both_seq_weekly_fresh.txt metadata_both_seq_weekly_fresh.tsv
 
 #Generate qzv for table merge 
-
 qiime feature-table summarize \ 
   --i-table merged-table.qza \
   --m-metadata-file metadata_both_seq_weekly_fresh.tsv \
   --o-feature-frequencies feature-frequencies.qza \
   --o-sample-frequencies sample-frequencies.qza \
   --o-summary summary-both.qzv 
-
 
 #Get Silva for taxonomic classification 
   curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza
@@ -272,7 +264,6 @@ qiime feature-table tabulate-seqs \
 qiime feature-classifier classify-sklearn --i-classifier silva-138-99-nb-classifier.qza --i-reads merged-rep-seqs.qza --o-classification taxonomy-both.qza 
 
 #Taxa barplot 
- 
 qiime taxa barplot --i-table merged-table.qza --i-taxonomy taxonomy.qza --m-metadata-file metadata_both_seq_weekly_fresh.txt --o-visualization taxa-bar-plots-both.qzv    
 
 #now have taxa bar plots that can be visualized in QIIME2 VIEW website https://view.qiime2.org/
@@ -284,9 +275,7 @@ cd /home/users/nnd1011/GEN811_16s/data/fastq/both_seq_merge
 
 conda activate qiime2-amplicon-2026.1
 
-
-#create rooted phylogeny merged tree  (takes a while)
- 
+#create rooted phylogeny merged tree  
 qiime phylogeny align-to-tree-mafft-fasttree \
 qiime phylogeny align-to-tree-mafft-fasttree \
   --i-sequences merged-rep-seqs.qza \
