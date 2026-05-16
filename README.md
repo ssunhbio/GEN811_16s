@@ -56,7 +56,7 @@ This is a weighted unifrac PCOA plot of the microbial communities at the HILT, L
 
 
 
-EJ CML 2024
+*EJ CML 2024*
 
 ![plot](Plots/Taxa_Bar_Plot_CML2024.png)
 Figure 5: Taxonomic bar plot made using developed bioinformatic pipeline and displayed using QIIME 2 View. Plot displays relative frequency (level 4) of the Coastal Marine Lab sample site from February 2024 till December 2024.  
