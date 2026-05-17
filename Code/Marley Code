@@ -1,0 +1,170 @@
+# go to the folder with your fastq files
+cd /path/to/your/fastq_folder
+/home/users/mgg1026/16s_analysis/seq1_weekly/seq1_weekly_jel
+
+# create manifest file with header 
+echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" > manifest.tsv
+
+for file in *_R1.fastq.gz
+do
+    sample=$(basename "$file" _R1.fastq.gz)
+    forward=$(realpath "$file")q
+    reverse=$(realpath "${sample}_R2.fastq.gz")
+
+    echo -e "${sample}\t${forward}\t${reverse}" >> manifest.tsv
+done
+
+#activate the conda environment 
+conda activate qiime2-amplicon-2026.1 
+
+#import data into qiime
+    qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /home/users/mgg1026/16s_analysis/seq1_weekly/seq1_weekly_jel_raw/manifest.tsv \
+  --output-path /home/users/mgg1026/16s_analysis/seq1_weekly/paired-end-demux.qza \
+  --input-format PairedEndFastqManifestPhred33V2
+
+qiime cutadapt trim-paired \
+  --i-demultiplexed-sequences paired-end-demux.qza \
+  --p-front-f GTGCCAGCMGCCGCGGTAA \
+  --p-front-r GGACTACHVGGGTWTCTAAT \
+  --p-error-rate 0.1 \
+  --p-overlap 3 \
+  --p-match-adapter-wildcards True \
+  --p-match-read-wildcards True \
+  --o-trimmed-sequences trimmed-seqs.qza \
+  --verbose
+
+#visualize the trimmed reads to identify where to truncate 
+
+qiime demux summarize \
+  --i-data paired-end-demux.qza \
+  --o-visualization paired-end-demux.qzv
+
+  use view.qiime2 to look at the .qzv files
+
+#denoise with dada2
+
+qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs trimmed-seqs.qza \
+  --p-trim-left-f 0 \
+  --p-trim-left-r 0 \
+  --p-trunc-len-f 240 \
+  --p-trunc-len-r 220 \
+  --p-n-threads 18 \
+  --o-denoising-stats denoising-stats.qza \
+  --o-table table.qza \
+  --o-representative-sequences rep-seqs.qza
+
+#visualize dada2
+
+  qiime metadata tabulate \
+  --m-input-file rep-seqs.qza \
+  --o-visualization rep-seqs.qzv
+
+#use this to download the classifier 
+curl -L -o silva-138-99-nb-classifier.qza "https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza"
+
+#assign taxonomy 
+qiime feature-classifier classify-sklearn \
+  --i-classifier silva-138-99-nb-classifier.qza \
+  --i-reads rep-seqs.qza \
+  --o-classification taxonomy.qza
+
+#making feature table 
+#make sure you have a metadata file with your metadata
+
+qiime feature-table summarize \
+  --i-table table.qza \
+  --m-metadata-file jel_seq1_meta.txt \
+  --o-feature-frequencies feature-frequencies.qza \
+  --o-sample-frequencies sample-frequencies.qza \
+  --o-summary table.qzv
+
+  qiime taxa barplot \
+  --i-table table.qza \
+  --i-taxonomy taxonomy.qza \
+  --m-metadata-file jel_seq1_meta.txt \
+  --o-visualization taxa-bar-plots.qzv
+
+#do again for seq2
+
+#rename rep-seqs and table .qza files from each seq and move into new directory
+#merge them 
+
+conda activate qiime2-amplicon-2026.1 
+
+qiime feature-table merge \
+--i-tables table1.qza \
+--i-tables table2.qza \
+--o-merged-table merged-table.qza
+
+qiime feature-table merge-seqs \
+--i-data rep-seqs1.qza \
+--i-data rep-seqs2.qza \
+--o-merged-data merged-rep-seqs.qza
+
+
+#Generate qzv for table merge
+
+qiime feature-table summarize \
+--i-table merged-table.qza \
+--m-metadata-file merged_meta.txt \
+--o-feature-frequencies feature-frequencies.qza \
+--o-sample-frequencies sample-frequencies.qza \
+--o-summary summary.qzv
+
+#Generate qzv for rep-seqs
+
+qiime feature-table tabulate-seqs \
+--i-data merged-rep-seqs.qza \
+--o-visualization merged-rep-seqs.qzv
+
+
+#Get Silva for taxonomic classification
+curl -L -o silva-138-99-nb-classifier.qza https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza
+
+#assign taxonomy 
+qiime feature-classifier classify-sklearn \
+  --i-classifier silva-138-99-nb-classifier.qza \
+  --i-reads merged-rep-seqs.qza \
+  --o-classification taxonomy.qza
+
+#Taxa barplot
+
+qiime taxa barplot \
+--i-table merged-table.qza \
+--i-taxonomy taxonomy.qza \
+--m-metadata-file merged_meta.txt \
+--o-visualization taxa-bar-plots.qzv   
+
+#Open taxa-bar-plots.qzv in qiime view and change taxonomic level to 4-6 for more detail.
+
+
+  #create rooted phylogeny tree
+  
+qiime phylogeny align-to-tree-mafft-fasttree \
+--i-sequences merged-rep-seqs.qza \
+--o-alignment aligned-rep-seqs.qza \
+--o-masked-alignment masked-aligned-rep-seqs.qza \
+--o-tree unrooted-tree.qza \
+--o-rooted-tree rooted-tree.qza \
+--p-n-threads auto \
+--verbose
+
+
+#create a folder with qza to summarize to choose rarefaction
+
+qiime feature-table summarize --i-table merged-table.qza --output-dir feature-table-summary --m-metadata-file merged_meta.txt
+
+
+#View summary in qiime viewer.  
+
+#Produce a bunch of diversity values
+
+qiime diversity core-metrics-phylogenetic \
+--i-phylogeny rooted-tree.qza \
+--i-table merged-table.qza \
+--p-sampling-depth 78321 \
+--m-metadata-file merged_meta.txt \
+--output-dir core-metrics-results
